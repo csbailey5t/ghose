@@ -59,7 +59,11 @@ def get_college_info(url):
 
     # Need to do recognition by AICTE or not
     # search for 'approved' and 'aicte' in lowered text of all areas
-    all_text = containing_div.get_text()
+    all_text = containing_div.get_text().lower()
+    if 'approved' and 'aicte' in all_text:
+        approved = 'true'
+    else:
+        approved = 'false'
 
     course_section = containing_div.find_all('div', {'class': 'c'})[2]
     course_text = course_section.get_text().lower()
@@ -95,7 +99,7 @@ def get_college_info(url):
            institution_type, pin_num, has_masters, has_it, num_it_seats,
            total_seats, head]
 
-    return all_text
+    return approved
 
 
 def main():
