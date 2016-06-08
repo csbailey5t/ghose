@@ -3,6 +3,7 @@ import requests
 from urllib.parse import urljoin
 
 BASE_URL = 'http://www.indiastudycenter.com/Univ/Engineering-Colleges.asp'
+SINGLE_URL = 'http://www.indiastudycenter.com/Univ/States/AP/Adilabad/AMR-Institute-Technology.asp'
 
 
 def get_link_urls(url):
@@ -19,14 +20,43 @@ def get_link_urls(url):
     return college_groups_links
 
 
+def flatten(content):
+    flat_list = [item for sublist in content for item in sublist]
+    return flat_list
+
+
+def get_college_info(url):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, 'html.parser')
+
+    containing_div = soup.find('div', {'class': 'r'})
+
+    title_and_place = containing_div.find('h1').get_text()
+    title, district, state = title_and_place.split(',')
+    district = district.strip()
+    state = state.strip()
+
+    return title, district, state
+
+
 def main():
-    college_groups_links = get_link_urls(BASE_URL)
+    # college_groups_links = get_link_urls(BASE_URL)
+    #
+    # area_colleges_urls = []
+    # for colleges_url in college_groups_links:
+    #     area_colleges_urls.append(get_link_urls(colleges_url))
+    #
+    # # flatten list
+    # flat_area_colleges_urls = flatten(area_colleges_urls)
+    #
+    # college_urls = []
+    # for college_url in flat_area_colleges_urls:
+    #     college_urls.append(get_link_urls(college_url))
+    #
+    # flat_college_urls = flatten(college_urls)
 
-    colleges = []
-    for colleges_url in college_groups_links:
-        colleges.append(get_link_urls(colleges_url))
-
-    print(colleges)
+    single_college = get_college_info(SINGLE_URL)
+    print(single_college)
 
 if __name__ == '__main__':
     main()
