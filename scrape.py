@@ -32,6 +32,7 @@ def get_college_info(url):
 
     containing_div = soup.find('div', {'class': 'r'})
 
+    # title, distrcit, state
     title_and_place = containing_div.find('h1').get_text()
     title, district, state = title_and_place.split(',')
     district = district.strip()
@@ -39,19 +40,32 @@ def get_college_info(url):
 
     about_section = containing_div.find_all('div', {'class': 'c'})[1]
     about_contents = about_section.find_all('p')
+    # establishment year
     establishment_line = about_contents[0].get_text()
     establishment_year = establishment_line.split(':')[1]
     establishment_year = establishment_year.strip()
+    # institution type
     institution_line = about_contents[1].get_text()
     institution_type = institution_line.split(':')[1]
     institution_type = institution_type.strip()
 
+    # pin
     pin_section = containing_div.find('div', {'class': 'c'})
     pin_line = pin_section.find_all('p')[1].get_text()
     pin_num = pin_line.split(':')[1]
     pin_num = pin_num.strip()
 
-    return establishment_year, institution_type
+    # Need to do recognition by AICTE or not
+    # Masters or not
+    # Information technology or not
+    # Total intake not counting IT
+    # intake for IT
+
+    # head of dept
+    who = containing_div.find_all('div', {'class': 'c'})[3]
+    head = who.find('br').nextSibling
+
+    return head
 
 
 def main():
