@@ -36,7 +36,12 @@ def get_college_info(url):
     district = district.strip()
     state = state.strip()
 
-    return title, district, state
+    about_section = containing_div.find_all('div', {'class': 'c'})[1]
+    establishment_line = about_section.find('p').get_text()
+    establishment_year = establishment_line.split(':')[1]
+    establishment_year = establishment_year.strip()
+
+    return establishment_year
 
 
 def main():
