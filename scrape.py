@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import re
 import requests
 from urllib.parse import urljoin
 
@@ -56,16 +57,29 @@ def get_college_info(url):
     pin_num = pin_num.strip()
 
     # Need to do recognition by AICTE or not
+
     # Masters or not
     # Information technology or not
     # Total intake not counting IT
     # intake for IT
+    course_section = containing_div.find_all('div', {'class': 'c'})[2]
+    course_text = course_section.get_text().lower()
+    if 'master' in course_text:
+        has_masters = 'true'
+    else:
+        has_masters = 'false'
+    if 'information technology' or 'it' in course_text:
+        has_it = 'true'
+    else:
+        has_it = 'false'
 
     # head of dept
-    who = containing_div.find_all('div', {'class': 'c'})[3]
-    head = who.find('br').nextSibling
+    who = containing_div.find('div', text=re.compile('Whos Who'))
+    head = who.nextSibling.find('br').nextSibling
 
-    return head
+    return has_it
+    # will actually want to return a properly ordered pandas series
+    # to add as row I think
 
 
 def main():
