@@ -73,15 +73,18 @@ def get_college_info(url):
         has_it = 'true'
     else:
         has_it = 'false'
-
+    it_line = course_section.find('p', text=re.compile('Information'))
+    it_line = it_line.get_text()
+    it_seats = re.findall('\d+\s\w+', it_line)
+    num_it_seats = it_seats[0].split(' ')[0]
     # head of dept
     who = containing_div.find('div', text=re.compile('Whos Who'))
     head = who.nextSibling.find('br').nextSibling
 
     row = [title, district, state, establishment_year,
-           institution_type, pin_num, has_masters, has_it, head]
+           institution_type, pin_num, has_masters, has_it, num_it_seats, head]
 
-    return row
+    return num_it_seats
     # will actually want to return a properly ordered pandas series
     # to add as row I think
 
@@ -103,13 +106,13 @@ def main():
     # flat_college_urls = flatten(college_urls)
 
     columns = ['title', 'district', 'state', 'year', 'type',
-               'pin', 'masters', 'it', 'director']
+               'pin', 'masters', 'it', 'it_seats' 'director']
 
-    data = []
+    # data = []
     single_college = get_college_info(SINGLE_URL)
-    data.append(single_college)
-    df = pd.DataFrame(data, columns=columns)
-    print(df)
+    # data.append(single_college)
+    # df = pd.DataFrame(data, columns=columns)
+    print(single_college)
 
 if __name__ == '__main__':
     main()
