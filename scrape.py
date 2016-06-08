@@ -154,42 +154,74 @@ def get_college_info(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
 
-    containing_div = soup.find('div', {'class': 'r'})
+    tables = soup.findall('table')
+    print('tables', tables)
+    if tables:
+        # get title
+        title_block = tables.find('strong')
+        title = title_block.get_text
+        print(title)
+        # check approval
+        whole_content = tables.get_text.lower()
+        if 'approved' and 'aicte' in whole_content:
+            approved = 'true'
+        else:
+            approved = 'false'
+        # check IT
+        course_list = tables.findall('td', {'class': 'crm'})[1]
+        course_text = course_list.get_text.lower
+        if 'it' in course_text:
+            has_it = 'true'
+        else:
+            has_it = 'false'
 
-    # title, district, state
-    title_and_place = containing_div.find('h1')
-    print('title', title_and_place)
-    title, district, state = get_title_and_place(title_and_place)
+        district, state, establishment_year = (None, None, None)
+        institution_type, pin_num, has_masters = (None, None, None)
+        num_it_seats, total_seats, head = (None, None, None)
 
-    about_section = containing_div.find('div', text=re.compile('About'))
-    establishment_year, institution_type = get_about_info(about_section)
+        row = [title, district, state, establishment_year,
+               institution_type, pin_num, approved, has_masters,
+               has_it, num_it_seats, total_seats, head]
 
-    # pin
-    pin_section = containing_div.find('div', {'class': 'c'})
-    pin_num = get_pin(pin_section)
+        return row
 
-    # Need to do recognition by AICTE or not
-    # search for 'approved' and 'aicte' in lowered text of all areas
-    all_text = containing_div.get_text().lower()
-    approved = check_approval(all_text)
+    else:
+        containing_div = soup.find('div', {'class': 'r'})
 
-    course_section = containing_div.find_all(
-        'div',
-        text=re.compile('Courses')
-        )
-    has_masters, has_it, num_it_seats, total_seats = get_course_info(
-        course_section
-        )
+        # title, district, state
+        title_and_place = containing_div.find('h1')
+        print('title', title_and_place)
+        title, district, state = get_title_and_place(title_and_place)
 
-    # head of dept
-    who = containing_div.find('div', text=re.compile('Whos Who'))
-    head = get_head_dir(who)
+        about_section = containing_div.find('div', text=re.compile('About'))
+        establishment_year, institution_type = get_about_info(about_section)
 
-    row = [title, district, state, establishment_year,
-           institution_type, pin_num, approved, has_masters,
-           has_it, num_it_seats, total_seats, head]
+        # pin
+        pin_section = containing_div.find('div', {'class': 'c'})
+        pin_num = get_pin(pin_section)
 
-    return row
+        # Need to do recognition by AICTE or not
+        # search for 'approved' and 'aicte' in lowered text of all areas
+        all_text = containing_div.get_text().lower()
+        approved = check_approval(all_text)
+
+        course_section = containing_div.find_all(
+            'div',
+            text=re.compile('Courses')
+            )
+        has_masters, has_it, num_it_seats, total_seats = get_course_info(
+            course_section
+            )
+
+        # head of dept
+        who = containing_div.find('div', text=re.compile('Whos Who'))
+        head = get_head_dir(who)
+
+        row = [title, district, state, establishment_year,
+               institution_type, pin_num, approved, has_masters,
+               has_it, num_it_seats, total_seats, head]
+
+        return row
 
 
 def main():
@@ -213,8 +245,8 @@ def main():
                'other seats', 'director']
 
     data = []
-    # single_college = get_college_info(ALT_URL)
-    single_college = get_college_info(SINGLE_URL)
+    single_college = get_college_info(ALT_URL)
+    # single_college = get_college_info(SINGLE_URL)
     data.append(single_college)
     df = pd.DataFrame(data, columns=columns)
     # df.to_csv('colleges.csv')
