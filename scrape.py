@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import pandas as pd
 import re
 import requests
 from urllib.parse import urljoin
@@ -77,7 +78,10 @@ def get_college_info(url):
     who = containing_div.find('div', text=re.compile('Whos Who'))
     head = who.nextSibling.find('br').nextSibling
 
-    return has_it
+    row = [title, district, state, establishment_year,
+           institution_type, pin_num, has_masters, has_it, head]
+
+    return row
     # will actually want to return a properly ordered pandas series
     # to add as row I think
 
@@ -98,8 +102,14 @@ def main():
     #
     # flat_college_urls = flatten(college_urls)
 
+    columns = ['title', 'district', 'state', 'year', 'type',
+               'pin', 'masters', 'it', 'director']
+
+    data = []
     single_college = get_college_info(SINGLE_URL)
-    print(single_college)
+    data.append(single_college)
+    df = pd.DataFrame(data, columns=columns)
+    print(df)
 
 if __name__ == '__main__':
     main()
