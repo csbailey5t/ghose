@@ -77,6 +77,15 @@ def get_college_info(url):
     it_line = it_line.get_text()
     it_seats = re.findall('\d+\s\w+', it_line)
     num_it_seats = it_seats[0].split(' ')[0]
+
+    all_seats = re.findall('\d+\s\w+', course_text)
+    nums = []
+    for seat_num in all_seats:
+        nums.append(seat_num.split(' ')[0])
+    total_seats = 0 - int(num_it_seats)
+    for num in nums:
+        total_seats += int(num)
+
     # head of dept
     who = containing_div.find('div', text=re.compile('Whos Who'))
     head = who.nextSibling.find('br').nextSibling
@@ -84,7 +93,7 @@ def get_college_info(url):
     row = [title, district, state, establishment_year,
            institution_type, pin_num, has_masters, has_it, num_it_seats, head]
 
-    return num_it_seats
+    return total_seats
     # will actually want to return a properly ordered pandas series
     # to add as row I think
 
