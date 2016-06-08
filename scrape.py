@@ -58,26 +58,27 @@ def get_college_info(url):
     pin_num = pin_num.strip()
 
     # Need to do recognition by AICTE or not
+    # search for 'approved' and 'aicte' in lowered text of all areas
+    all_text = containing_div.get_text()
 
-    # Masters or not
-    # Information technology or not
-    # Total intake not counting IT
-    # intake for IT
     course_section = containing_div.find_all('div', {'class': 'c'})[2]
     course_text = course_section.get_text().lower()
+    # has masters degree or not
     if 'master' in course_text:
         has_masters = 'true'
     else:
         has_masters = 'false'
+    # has it classes or not
     if 'information technology' or 'it' in course_text:
         has_it = 'true'
     else:
         has_it = 'false'
+    # number of it seats
     it_line = course_section.find('p', text=re.compile('Information'))
     it_line = it_line.get_text()
     it_seats = re.findall('\d+\s\w+', it_line)
     num_it_seats = it_seats[0].split(' ')[0]
-
+    # number of seats not it
     all_seats = re.findall('\d+\s\w+', course_text)
     nums = []
     for seat_num in all_seats:
@@ -91,11 +92,10 @@ def get_college_info(url):
     head = who.nextSibling.find('br').nextSibling
 
     row = [title, district, state, establishment_year,
-           institution_type, pin_num, has_masters, has_it, num_it_seats, head]
+           institution_type, pin_num, has_masters, has_it, num_it_seats,
+           total_seats, head]
 
-    return total_seats
-    # will actually want to return a properly ordered pandas series
-    # to add as row I think
+    return all_text
 
 
 def main():
@@ -115,7 +115,7 @@ def main():
     # flat_college_urls = flatten(college_urls)
 
     columns = ['title', 'district', 'state', 'year', 'type',
-               'pin', 'masters', 'it', 'it_seats' 'director']
+               'pin', 'masters', 'it', 'it seats', 'other seats' 'director']
 
     # data = []
     single_college = get_college_info(SINGLE_URL)
