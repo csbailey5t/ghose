@@ -26,6 +26,7 @@ def flatten(content):
 
 
 def get_college_info(url):
+    # have to build in checks for every section since not every page has all
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
 
@@ -37,11 +38,20 @@ def get_college_info(url):
     state = state.strip()
 
     about_section = containing_div.find_all('div', {'class': 'c'})[1]
-    establishment_line = about_section.find('p').get_text()
+    about_contents = about_section.find_all('p')
+    establishment_line = about_contents[0].get_text()
     establishment_year = establishment_line.split(':')[1]
     establishment_year = establishment_year.strip()
+    institution_line = about_contents[1].get_text()
+    institution_type = institution_line.split(':')[1]
+    institution_type = institution_type.strip()
 
-    return establishment_year
+    pin_section = containing_div.find('div', {'class': 'c'})
+    pin_line = pin_section.find_all('p')[1].get_text()
+    pin_num = pin_line.split(':')[1]
+    pin_num = pin_num.strip()
+
+    return establishment_year, institution_type
 
 
 def main():
