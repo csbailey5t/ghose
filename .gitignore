@@ -4,3 +4,4 @@ include/
 share/
 pip-selfcheck.json
 pyvenv.cfg
+colleges.csv
