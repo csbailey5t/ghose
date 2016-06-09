@@ -81,7 +81,7 @@ def get_about_info(content):
     else:
         establishment_year = None
     # institution type
-    if about_section.find('p', text=re.compile('Institution')):
+    if about_section.find('p', text=re.compile('Institution Type:')):
         institution_line = about_section.find(
             'p', text=re.compile('Institution')
             ).get_text()
@@ -132,11 +132,14 @@ def get_course_info(content):
     if it_line:
         it_line = it_line.get_text()
         it_seats = re.findall('\d+\s\w+', it_line)
-        num_it_seats = it_seats[0].split(' ')[0]
+        if len(it_seats) > 0:
+            num_it_seats = it_seats[0].split(' ')[0]
+        else:
+            num_it_seats = None
     else:
         num_it_seats = None
     # number of seats not it
-    all_seats = re.findall('\d+\s\w+', course_text)
+    all_seats = re.findall(r'\d+ \w+', course_text)
     if len(all_seats) == 0:
         total_seats = None
     else:
@@ -178,12 +181,25 @@ def get_college_info(url):
 
         return row
 
-    elif soup.find('div', text=re.compile('Courses')):
+    elif soup.find('div', text=re.compile('Courses')) or soup.find(
+        'div', text=re.compile('About')
+    ) or soup.find('div', text=re.compile('Engineering Updates')):
+        # may need to consider finding h1 within either div.r or div.right
+        # or div, text=re.compile('Engineering Updates')
         containing_div = soup.find('div', {'class': 'r'})
 
         # title, district, state
-        title_and_place = containing_div.find('h1')
-        title, district, state = get_title_and_place(title_and_place)
+        if containing_div.find('h1'):
+            title_and_place = containing_div.find('h1')
+        elif containing_div.find('div', {'class': 'head'}):
+            title_and_place = containing_div.find('div', {'class': 'head'})
+        else:
+            title_and_place = None
+        if title_and_place is None:
+            title = url
+            district, state = (None, None)
+        else:
+            title, district, state = get_title_and_place(title_and_place)
 
         about_section = containing_div.find('div', text=re.compile('About'))
         establishment_year, institution_type = get_about_info(about_section)
@@ -227,10 +243,13 @@ def get_college_info(url):
         else:
             approved = 'false'
         # check IT
-        course_list = soup.find_all('td', {'class': 'crm'})[1]
-        course_text = course_list.get_text().lower()
-        if 'it' in course_text:
-            has_it = 'true'
+        if len(soup.find_all('td', {'class': 'crm'})) > 1:
+            course_list = soup.find_all('td', {'class': 'crm'})[1]
+            course_text = course_list.get_text().lower()
+            if 'it' in course_text:
+                has_it = 'true'
+            else:
+                has_it = 'false'
         else:
             has_it = 'false'
 
@@ -261,27 +280,41 @@ def main():
         college_urls.append(get_link_urls(college_url))
 
     flat_college_urls = flatten(college_urls)
-    flat_college_urls.remove(
-        'http://www.indiastudycenter.com/Univ/Engineering-Colleges.asp'
-        )
-    flat_college_urls.remove(
-        'http://www.indiastudycenter.com/Univ/Admission7.htm'
-        )
-    # check to see if these colleges are included
-    flat_college_urls.remove(
-        'http://www.indiastudycenter.com/Univ/States/AP/hydbad/hydengc.asp'
-        )
-    # check to see if these colleges are included
-    flat_college_urls.remove(
-        'http://www.indiastudycenter.com/Univ/States/AP/Rangardy/Rangaengg.asp'
-        )
+
+    bad_urls = [
+        'http://www.indiastudycenter.com/Univ/Engineering-Colleges.asp',
+        'http://www.indiastudycenter.com/Univ/Admission7.htm',
+        'http://www.indiastudycenter.com/Univ/States/AP/hydbad/hydengc.asp',
+        'http://www.indiastudycenter.com/Univ/States/AP/Rangardy/Rangaengg.asp',
+        'http://twitter.com/share',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/amrita_institute_of_technology_&_sc.asp',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore/bit.asp',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/b-t-l-institute_of_technology_&_manageme.asp',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/nagarjuna_college_of_engg_&_tech.asp',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/reva_institute_for_science_&_technology.asp',
+        'http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/University_vishweshwaraiah_college_of_en.asp',
+        'http://www.indiastudycenter.com/univ/states/kerala/kozhikode/AWH-Engineering-College.asp',
+        'http://www.indiastudycenter.com/Univ/States/Maharastra/Dr-Babasaheb-Ambedkar-Marathwada-University/Faculties-Departments/Chemistry.asp',
+        "http://www.indiastudycenter.com/Univ/States/Maharastra/Pune/Marathwada-Mitra-Mandal'S-College-of-Engineering-Karvenagar.asp",
+        'http://www.indiastudycenter.com/Univ/States/Maharastra/Raigad/kgce.asp',
+        'http://www.indiastudycenter.com/univ/examinfo/uajet/default.asp'
+    ]
+
+    # urls to be done manually:
+    # http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore/bit.asp
+    # http://www.indiastudycenter.com/Univ/States/Karnataka/Bangalore(Urban)/University_vishweshwaraiah_college_of_en.asp
+    # http://www.indiastudycenter.com/univ/states/kerala/kozhikode/AWH-Engineering-College.asp
+    # http://www.indiastudycenter.com/Univ/States/Maharastra/Dr-Babasaheb-Ambedkar-Marathwada-University/Faculties-Departments/Chemistry.asp
+    # http://www.indiastudycenter.com/Univ/States/Maharastra/Raigad/kgce.asp
+
+    clean_college_urls = [x for x in flat_college_urls if x not in bad_urls]
 
     columns = ['title', 'district', 'state', 'year', 'type',
                'pin', 'aicte approved', 'masters', 'it', 'it seats',
                'other seats', 'director']
 
     data = []
-    for college_url in flat_college_urls:
+    for college_url in clean_college_urls:
         print(college_url)
         college_info = get_college_info(college_url)
         data.append(college_info)
