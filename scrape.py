@@ -7,11 +7,12 @@ from urllib.parse import urljoin
 
 BASE_URL = 'http://www.indiastudycenter.com/Univ/Engineering-Colleges.asp'
 SINGLE_URL = 'http://www.indiastudycenter.com/Univ/States/AP/Adilabad/AMR-Institute-Technology.asp'
-ALT_URL = 'http://www.indiastudycenter.com/Univ/States/AP/Adilabad/jce.asp'
+ALT_URL = 'http://www.indiastudycenter.com/Univ/States/AP/Adilabad/jsncet.asp'
 
 
 def with_default(default=None):
-    """Wraps func. If the first value passed evaluates to True, call it. Otherwise, return default """
+    """Wraps func. If the first value passed evaluates to True, call it.
+     Otherwise, return default """
 
     def outer(func):
         """ actually wraps it """
@@ -160,6 +161,8 @@ def get_college_info(url):
         # get title
         title_block = soup.find('td', {'class': 'grn'})
         title = title_block.find('strong').get_text()
+        title = title.strip()
+        print(title)
         # check approval
         about_content = soup.find('td', {'class': 'crm'}).get_text().lower()
         if 'approved' and 'aicte' in about_content:
@@ -169,12 +172,12 @@ def get_college_info(url):
         # check IT
         course_list = soup.find_all('td', {'class': 'crm'})[1]
         course_text = course_list.get_text().lower()
-        print('list', course_text)
         if 'it' in course_text:
             has_it = 'true'
         else:
             has_it = 'false'
 
+        # set defaults for information not on these pages
         district, state, establishment_year = (None, None, None)
         institution_type, pin_num, has_masters = (None, None, None)
         num_it_seats, total_seats, head = (None, None, None)
