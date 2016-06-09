@@ -154,22 +154,22 @@ def get_college_info(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
 
-    tables = soup.findall('table')
-    print('tables', tables)
-    if tables:
+    # tables = soup.findall('table')
+    course_table = soup.find('strong', text=re.compile('Courses'))
+    if course_table:
         # get title
-        title_block = tables.find('strong')
-        title = title_block.get_text
-        print(title)
+        title_block = soup.find('td', {'class': 'grn'})
+        title = title_block.find('strong').get_text()
         # check approval
-        whole_content = tables.get_text.lower()
-        if 'approved' and 'aicte' in whole_content:
+        about_content = soup.find('td', {'class': 'crm'}).get_text().lower()
+        if 'approved' and 'aicte' in about_content:
             approved = 'true'
         else:
             approved = 'false'
         # check IT
-        course_list = tables.findall('td', {'class': 'crm'})[1]
-        course_text = course_list.get_text.lower
+        course_list = soup.find_all('td', {'class': 'crm'})[1]
+        course_text = course_list.get_text().lower()
+        print('list', course_text)
         if 'it' in course_text:
             has_it = 'true'
         else:
