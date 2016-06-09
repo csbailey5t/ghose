@@ -70,16 +70,25 @@ def get_title_and_place(content):
 @with_default((None, None))
 def get_about_info(content):
     about_section = content.nextSibling
-    about_contents = about_section.find_all('p')
+    # about_contents = about_section.find_all('p')
     # establishment year
-    establishment_line = about_contents[0].get_text()
-    establishment_year = establishment_line.split(':')[1]
-    establishment_year = establishment_year.strip()
+    if about_section.find('p', text=re.compile('Establishment')):
+        establishment_line = about_section.find(
+            'p', text=re.compile('Establishment')
+            ).get_text()
+        establishment_year = establishment_line.split(':')[1]
+        establishment_year = establishment_year.strip()
+    else:
+        establishment_year = None
     # institution type
-    institution_line = about_contents[1].get_text()
-    institution_type = institution_line.split(':')[1]
-    institution_type = institution_type.strip()
-
+    if about_section.find('p', text=re.compile('Institution')):
+        institution_line = about_section.find(
+            'p', text=re.compile('Institution')
+            ).get_text()
+        institution_type = institution_line.split(':')[1]
+        institution_type = institution_type.strip()
+    else:
+        institution_type = None
     return establishment_year, institution_type
 
 
@@ -155,7 +164,21 @@ def get_college_info(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
 
-    if soup.find('div', text=re.compile('About')):
+    if soup.find('strong', text=re.compile('Choose a University')):
+        title = url
+
+        district, state, establishment_year = (None, None, None)
+        institution_type, pin_num, has_masters = (None, None, None)
+        num_it_seats, total_seats, head = (None, None, None)
+        has_it, approved = (None, None)
+
+        row = [title, district, state, establishment_year,
+               institution_type, pin_num, approved, has_masters,
+               has_it, num_it_seats, total_seats, head]
+
+        return row
+
+    elif soup.find('div', text=re.compile('Courses')):
         containing_div = soup.find('div', {'class': 'r'})
 
         # title, district, state
@@ -224,32 +247,49 @@ def get_college_info(url):
 
 
 def main():
-    # college_groups_links = get_link_urls(BASE_URL)
-    #
-    # area_colleges_urls = []
-    # for colleges_url in college_groups_links:
-    #     area_colleges_urls.append(get_link_urls(colleges_url))
-    #
-    # # flatten list
-    # flat_area_colleges_urls = flatten(area_colleges_urls)
-    #
-    # college_urls = []
-    # for college_url in flat_area_colleges_urls:
-    #     college_urls.append(get_link_urls(college_url))
-    #
-    # flat_college_urls = flatten(college_urls)
+    college_groups_links = get_link_urls(BASE_URL)
+
+    area_colleges_urls = []
+    for colleges_url in college_groups_links:
+        area_colleges_urls.append(get_link_urls(colleges_url))
+
+    # flatten list
+    flat_area_colleges_urls = flatten(area_colleges_urls)
+
+    college_urls = []
+    for college_url in flat_area_colleges_urls:
+        college_urls.append(get_link_urls(college_url))
+
+    flat_college_urls = flatten(college_urls)
+    flat_college_urls.remove(
+        'http://www.indiastudycenter.com/Univ/Engineering-Colleges.asp'
+        )
+    flat_college_urls.remove(
+        'http://www.indiastudycenter.com/Univ/Admission7.htm'
+        )
+    # check to see if these colleges are included
+    flat_college_urls.remove(
+        'http://www.indiastudycenter.com/Univ/States/AP/hydbad/hydengc.asp'
+        )
+    # check to see if these colleges are included
+    flat_college_urls.remove(
+        'http://www.indiastudycenter.com/Univ/States/AP/Rangardy/Rangaengg.asp'
+        )
 
     columns = ['title', 'district', 'state', 'year', 'type',
                'pin', 'aicte approved', 'masters', 'it', 'it seats',
                'other seats', 'director']
 
     data = []
+    for college_url in flat_college_urls:
+        print(college_url)
+        college_info = get_college_info(college_url)
+        data.append(college_info)
     # single_college = get_college_info(ALT_URL)
-    single_college = get_college_info(SINGLE_URL)
-    data.append(single_college)
+    # single_college = get_college_info(SINGLE_URL)
     df = pd.DataFrame(data, columns=columns)
-    # df.to_csv('colleges.csv')
-    print(df)
+    df.to_csv('colleges.csv')
+    print('all done.')
 
 if __name__ == '__main__':
     main()
