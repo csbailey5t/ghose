@@ -20,10 +20,10 @@ def with_default(default=None):
         def wrapper(first_arg, *args, **kwargs):
             """ This function wraps func """
             if first_arg:
-                print('calling {} with {}'.format(func.__name__, first_arg))
+                # print('calling {} with {}'.format(func.__name__, first_arg))
                 return func(first_arg, *args, **kwargs)
             else:
-                print('not calling {} with {}'.format(func.__name__, first_arg))
+                # print('not calling {} with {}'.format(func.__name__, first_arg))
                 return default
 
         return wrapper
@@ -155,45 +155,11 @@ def get_college_info(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.text, 'html.parser')
 
-    # tables = soup.findall('table')
-    course_table = soup.find('strong', text=re.compile('Courses'))
-    if course_table:
-        # get title
-        title_block = soup.find('td', {'class': 'grn'})
-        title = title_block.find('strong').get_text()
-        title = title.strip()
-        print(title)
-        # check approval
-        about_content = soup.find('td', {'class': 'crm'}).get_text().lower()
-        if 'approved' and 'aicte' in about_content:
-            approved = 'true'
-        else:
-            approved = 'false'
-        # check IT
-        course_list = soup.find_all('td', {'class': 'crm'})[1]
-        course_text = course_list.get_text().lower()
-        if 'it' in course_text:
-            has_it = 'true'
-        else:
-            has_it = 'false'
-
-        # set defaults for information not on these pages
-        district, state, establishment_year = (None, None, None)
-        institution_type, pin_num, has_masters = (None, None, None)
-        num_it_seats, total_seats, head = (None, None, None)
-
-        row = [title, district, state, establishment_year,
-               institution_type, pin_num, approved, has_masters,
-               has_it, num_it_seats, total_seats, head]
-
-        return row
-
-    else:
+    if soup.find('div', text=re.compile('About')):
         containing_div = soup.find('div', {'class': 'r'})
 
         # title, district, state
         title_and_place = containing_div.find('h1')
-        print('title', title_and_place)
         title, district, state = get_title_and_place(title_and_place)
 
         about_section = containing_div.find('div', text=re.compile('About'))
@@ -226,6 +192,36 @@ def get_college_info(url):
 
         return row
 
+    else:
+        # get title
+        title_block = soup.find('td', {'class': 'grn'})
+        title = title_block.find('strong').get_text()
+        title = title.strip()
+        # check approval
+        about_content = soup.find('td', {'class': 'crm'}).get_text().lower()
+        if 'approved' and 'aicte' in about_content:
+            approved = 'true'
+        else:
+            approved = 'false'
+        # check IT
+        course_list = soup.find_all('td', {'class': 'crm'})[1]
+        course_text = course_list.get_text().lower()
+        if 'it' in course_text:
+            has_it = 'true'
+        else:
+            has_it = 'false'
+
+        # set defaults for information not on these pages
+        district, state, establishment_year = (None, None, None)
+        institution_type, pin_num, has_masters = (None, None, None)
+        num_it_seats, total_seats, head = (None, None, None)
+
+        row = [title, district, state, establishment_year,
+               institution_type, pin_num, approved, has_masters,
+               has_it, num_it_seats, total_seats, head]
+
+        return row
+
 
 def main():
     # college_groups_links = get_link_urls(BASE_URL)
@@ -248,8 +244,8 @@ def main():
                'other seats', 'director']
 
     data = []
-    single_college = get_college_info(ALT_URL)
-    # single_college = get_college_info(SINGLE_URL)
+    # single_college = get_college_info(ALT_URL)
+    single_college = get_college_info(SINGLE_URL)
     data.append(single_college)
     df = pd.DataFrame(data, columns=columns)
     # df.to_csv('colleges.csv')
