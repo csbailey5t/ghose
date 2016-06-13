@@ -150,6 +150,8 @@ def get_course_info(content):
     else:
         has_masters = 'false'
     # Check if has IT classes or not
+    # TODO: if finding 'it' make sure it picks that up only when it constitutes the entire word
+    # TODO: consider looking specifically for 'IT' in text blog that is not lower cased.
     if 'information technology' or 'it' in course_text:
         has_it = 'true'
     else:
@@ -158,6 +160,7 @@ def get_course_info(content):
     # Find the IT line
     it_line = course_section.find('p', text=re.compile('Information'))
     # If the line exists, find all '## seats' phrases. Just get the number.
+    # TODO: check for situation based on 'IT' to make sure count is accurate
     if it_line:
         it_line = it_line.get_text()
         it_seats = re.findall('\d+\s\w+', it_line)
@@ -276,6 +279,8 @@ def get_college_info(url):
         return row
     # Handle the pages where the markup for the college is a table
     else:
+        # Add check for 'Established in: YYYY'
+        # If it has it, pull the year and attach
         # Get the title of the college
         title_block = soup.find('td', {'class': 'grn'})
         title = title_block.find('strong').get_text()
