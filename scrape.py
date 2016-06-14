@@ -14,7 +14,7 @@ ALT_URL = 'http://www.indiastudycenter.com/Univ/States/AP/Adilabad/jsncet.asp'
 
 
 def with_default(default=None):
-    """Wraps func. If the first value passed evaluates to True, call it.
+    """ Wraps func. If the first value passed evaluates to True, call it.
      Otherwise, return default """
 
     def outer(func):
@@ -34,6 +34,7 @@ def with_default(default=None):
     return outer
 
 
+# modulename.method(parameters)
 def get_link_urls(url):
     """ Creates a list of urls for colleges scraped from the given url """
     # Get the raw html
@@ -143,24 +144,29 @@ def get_course_info(content):
     # Find the course section
     course_section = content[0].nextSibling
     # Get the text and lowercase it
-    course_text = course_section.get_text().lower()
+    course_text = course_section.get_text()
+    course_text_lower = course_text.lower()
     # Check if has masters degree or not
-    if 'master' in course_text:
+    if 'master' in course_text_lower:
         has_masters = 'true'
     else:
         has_masters = 'false'
     # Check if has IT classes or not
-    # TODO: if finding 'it' make sure it picks that up only when it constitutes the entire word
-    # TODO: consider looking specifically for 'IT' in text blog that is not lower cased.
-    if 'information technology' or 'it' in course_text:
+    if 'information technology' in course_text_lower:
+        has_it = 'true'
+    elif 'IT' in course_text:
         has_it = 'true'
     else:
         has_it = 'false'
     # Calculate the number of IT seats
     # Find the IT line
-    it_line = course_section.find('p', text=re.compile('Information'))
+    if course_section.find('p', text=re.compile('Information')):
+        it_line = course_section.find('p', text=re.compile('Information'))
+    elif course_section.find('p', text=re.compile('IT')):
+        it_line = course_section.find('p', text=re.compile('IT'))
+    else:
+        it_line = False
     # If the line exists, find all '## seats' phrases. Just get the number.
-    # TODO: check for situation based on 'IT' to make sure count is accurate
     if it_line:
         it_line = it_line.get_text()
         it_seats = re.findall('\d+\s\w+', it_line)
@@ -313,6 +319,7 @@ def get_college_info(url):
 
         return row
 
+# def function_name(parameters):
 
 def main():
     # Get the first list of urls from the start page
