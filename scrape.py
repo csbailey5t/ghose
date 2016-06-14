@@ -34,7 +34,6 @@ def with_default(default=None):
     return outer
 
 
-# modulename.method(parameters)
 def get_link_urls(url):
     """ Creates a list of urls for colleges scraped from the given url """
     # Get the raw html
@@ -285,14 +284,25 @@ def get_college_info(url):
         return row
     # Handle the pages where the markup for the college is a table
     else:
-        # Add check for 'Established in: YYYY'
+        # TODO: Add check for 'Established in: YYYY'
         # If it has it, pull the year and attach
         # Get the title of the college
         title_block = soup.find('td', {'class': 'grn'})
         title = title_block.find('strong').get_text()
         title = title.strip()
-        # Check for AICTE approval
+        # Get the about content
         about_content = soup.find('td', {'class': 'crm'}).get_text().lower()
+        # Get the establishment year
+        establishment_chunk = re.search(
+            'established in: \d+', about_content.strip()
+            )
+        if establishment_chunk:
+            words = establishment_chunk.group()
+            chunks = words.split(' ')
+            establishment_year = chunks.pop()
+        else:
+            establishment_year = None
+        # Check for AICTE approval
         if 'approved' and 'aicte' in about_content:
             approved = 'true'
         else:
@@ -309,7 +319,7 @@ def get_college_info(url):
             has_it = 'false'
 
         # Set defaults for information not on these pages
-        district, state, establishment_year = (None, None, None)
+        district, state = (None, None)
         institution_type, pin_num, has_masters = (None, None, None)
         num_it_seats, total_seats, head = (None, None, None)
         # Build the data row
@@ -319,7 +329,6 @@ def get_college_info(url):
 
         return row
 
-# def function_name(parameters):
 
 def main():
     # Get the first list of urls from the start page
