@@ -284,8 +284,6 @@ def get_college_info(url):
         return row
     # Handle the pages where the markup for the college is a table
     else:
-        # TODO: Add check for 'Established in: YYYY'
-        # If it has it, pull the year and attach
         # Get the title of the college
         title_block = soup.find('td', {'class': 'grn'})
         title = title_block.find('strong').get_text()
